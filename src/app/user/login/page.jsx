@@ -5,17 +5,35 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { postData } from "@/lib/api";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e) => {
-    e.preventDefault(); // <--- INI KUNCINYA: Mencegah browser refresh halaman
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-    // Di sini nanti bisa tambah logika cek password/email valid
-    // Jika sukses, baru pindah halaman:
-    router.push("/seller/onboarding");
+    setLoading(true);
+
+    const res = await postData("/api/login", {
+      email,
+      password,
+      role: "buyer",
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      alert(res.data.message || "Login gagal");
+      return;
+    }
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("role", res.data.user.role);
+    router.push("/user/dashboard");
   };
 
   return (
@@ -38,18 +56,23 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-blue-500 mb-2">Login</h1>
           <p className="text-sm text-gray-600 mb-6">
             Don{"'"}t have an account?{" "}
-            <Link href="/register" className="text-blue-500 hover:underline">
+            <Link
+              href="/user/register"
+              className="text-blue-500 hover:underline"
+            >
               Register here
             </Link>
           </p>
 
-          <form className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             {/* Email Field */}
             <div>
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border rounded-lg border-gray-300 text-gray-700 placeholder-gray-400"
               />
             </div>
 
@@ -58,12 +81,14 @@ export default function LoginPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400 pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border rounded-lg pr-10 border-gray-300 text-gray-700 placeholder-gray-400"
               />
               <button
                 type="button"
-                onSubmit={handleLogin}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 border-gray-300 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -71,11 +96,11 @@ export default function LoginPage() {
 
             {/* Button Masuk */}
             <button
-              onClick={() => router.push("/seller/onboarding")}
-              type="button"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition duration-200 mt-4"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg mt-4"
             >
-              Masuk
+              {loading ? "Loading..." : "Masuk"}
             </button>
           </form>
         </div>

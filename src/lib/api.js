@@ -8,11 +8,66 @@ export async function postData(url, data, token = null) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       credentials: "include", // jika pakai sanctum (opsional)
       body: JSON.stringify(data),
+    });
+
+    const res = await response.json();
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      data: res,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 500,
+      data: { message: "Network error", error: err.message },
+    };
+  }
+}
+
+export async function postMultipart(url, formData, token = null) {
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData, // jangan set Content-Type
+    });
+
+    const res = await response.json();
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      data: res,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 500,
+      data: { message: "Network error", error: err.message },
+    };
+  }
+}
+
+export async function putMultipart(url, formData, token) {
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        "X-HTTP-Method-Override": "PUT",
+      },
+      body: formData,
     });
 
     const res = await response.json();
@@ -56,3 +111,5 @@ export async function getData(url, token) {
     };
   }
 }
+
+

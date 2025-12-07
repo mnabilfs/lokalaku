@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { postData } from "@/lib/api";
+import { postData, getData } from "@/lib/api";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +33,14 @@ export default function LoginPage() {
     }
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("role", res.data.user.role);
-    router.push("/seller/onboarding");
+
+    const resShop = await getData("/api/seller", res.data.token);
+
+    if (resShop.ok && resShop.data.status === "ready") {
+      router.push("/seller/dashboard");
+    } else {
+      router.push("/seller/onboarding");
+    }
   };
 
   return (
@@ -42,12 +49,14 @@ export default function LoginPage() {
         {/* Bagian Kiri: Logo */}
         <div className="flex-shrink-0">
           {/* Ganti '/logo-lokalaku.png' dengan path gambarmu */}
-          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-blue-500 flex items-center justify-center p-4">
-            {/* Gunakan Image component Next.js jika aset sudah ada */}
-            {/* <Image src="/logo.png" alt="Lokalaku Logo" width={200} height={200} /> */}
-            <span className="text-blue-500 font-bold text-xl text-center">
-              [Place Logo Here]
-            </span>
+          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center p-4">
+            <Image
+              src="/logo_lokalaku.png"
+              alt="Lokalaku Logo"
+              fill
+              className="object-contain rounded-full"
+              unoptimized
+            />
           </div>
         </div>
 

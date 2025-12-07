@@ -42,12 +42,14 @@ export default function LoginPage() {
         {/* Bagian Kiri: Logo */}
         <div className="flex-shrink-0">
           {/* Ganti '/logo-lokalaku.png' dengan path gambarmu */}
-          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-blue-500 flex items-center justify-center p-4">
-            {/* Gunakan Image component Next.js jika aset sudah ada */}
-            {/* <Image src="/logo.png" alt="Lokalaku Logo" width={200} height={200} /> */}
-            <span className="text-blue-500 font-bold text-xl text-center">
-              [Place Logo Here]
-            </span>
+          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center p-4">
+            <Image
+              src="/logo_lokalaku.png"
+              alt="Lokalaku Logo"
+              fill
+              className="object-contain rounded-full"
+              unoptimized
+            />
           </div>
         </div>
 

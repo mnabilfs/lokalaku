@@ -28,7 +28,7 @@ export default function RegisterPage() {
       username,
       email,
       password,
-      role: "seller"
+      role: "seller",
     });
 
     if (!res.ok) {
@@ -45,10 +45,14 @@ export default function RegisterPage() {
         {/* Bagian Kiri: Logo */}
         <div className="flex-shrink-0 hidden md:block">
           {/* Ganti dengan logo kamu */}
-          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-blue-500 flex items-center justify-center p-4">
-            <span className="text-blue-500 font-bold text-xl text-center">
-              [Place Logo Here]
-            </span>
+          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center p-4">
+            <Image
+              src="/logo_lokalaku.png"
+              alt="Lokalaku Logo"
+              fill
+              className="object-contain rounded-full"
+              unoptimized
+            />
           </div>
         </div>
 
@@ -57,7 +61,10 @@ export default function RegisterPage() {
           <h1 className="text-2xl font-bold text-blue-500 mb-2">Register</h1>
           <p className="text-sm text-gray-600 mb-6">
             Have an account?{" "}
-            <Link href="/seller/login" className="text-blue-500 hover:underline">
+            <Link
+              href="/seller/login"
+              className="text-blue-500 hover:underline"
+            >
               Login here
             </Link>
           </p>
@@ -84,7 +91,7 @@ export default function RegisterPage() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border rounded-lg border-gray-300 text-gray-700 placeholder-gray-400" 
+              className="w-full px-4 py-3 border rounded-lg border-gray-300 text-gray-700 placeholder-gray-400"
             />
 
             <div className="relative">

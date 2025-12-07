@@ -44,10 +44,14 @@ export default function RegisterPage() {
         {/* Bagian Kiri: Logo */}
         <div className="flex-shrink-0 hidden md:block">
           {/* Ganti dengan logo kamu */}
-          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-blue-500 flex items-center justify-center p-4">
-            <span className="text-blue-500 font-bold text-xl text-center">
-              [Place Logo Here]
-            </span>
+          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center p-4">
+            <Image
+              src="/logo_lokalaku.png"
+              alt="Lokalaku Logo"
+              fill
+              className="object-contain rounded-full"
+              unoptimized
+            />
           </div>
         </div>
 
@@ -83,7 +87,7 @@ export default function RegisterPage() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border rounded-lg border-gray-300 text-gray-700 placeholder-gray-400" 
+              className="w-full px-4 py-3 border rounded-lg border-gray-300 text-gray-700 placeholder-gray-400"
             />
 
             <div className="relative">

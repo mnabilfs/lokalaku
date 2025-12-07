@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import "leaflet/dist/leaflet.css";
 
 /* ===== CONFIG ===== */
-const DEVELOPER_MODE = true; // toggle developer mode
+const DEVELOPER_MODE = false; // toggle developer mode
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /* ===== MOCKS (dev mode) ===== */
@@ -91,6 +91,20 @@ const Polyline = dynamic(
 /* ===== helpers ===== */
 function containsText(target = "", query = "") {
   return target?.toString().toLowerCase().includes(query.toString().toLowerCase());
+}
+
+/* Normalize various image path formats returned by backend to absolute URLs */
+function normalizeImageUrl(imageUrl) {
+  if (!imageUrl) return null;
+  // already absolute
+  if (typeof imageUrl === 'string' && /^https?:\/\//i.test(imageUrl)) return imageUrl;
+
+  // backend may return '/storage/...' or 'storage/...' or 'some/path.jpg'
+  if (imageUrl.startsWith('/')) {
+    return `${API}${imageUrl}`;
+  }
+
+  return `${API}/${imageUrl}`;
 }
 
 /* ===== Page Component ===== */
@@ -267,20 +281,31 @@ export default function DashboardMapPage() {
       const token = localStorage.getItem("token");
       console.log('fetchShops: token present?', !!token);
 
-      // choose endpoint based on token availability — use public debug endpoint when unauthenticated
-      const endpoint = token ? `${API}/api/buyer/map` : `${API}/api/buyer/map-public`;
+      // choose endpoint based on token availability
+      // - If token exists, call protected POST `/api/buyer/map` with Bearer token
+      // - If unauthenticated, call public GET `/api/buyer/map-data` which accepts query params
+      let res = null;
+      if (token) {
+        const endpoint = `${API}/api/buyer/map`;
+        const headers = {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
 
-      const headers = {
-        "Content-Type": "application/json",
-      };
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      // call backend buyer/map endpoint (POST) — returns weather, nearby_shops, etc.
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ latitude: lat, longitude: lng, radius: 2 }),
-      });
+        res = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ latitude: lat, longitude: lng, radius: 2 }),
+        });
+      } else {
+        // Use GET /api/buyer/map-data for unauthenticated consumers (route exists in backend)
+        const endpoint = `${API}/api/buyer/map-data?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&radius=2`;
+        res = await fetch(endpoint, {
+          method: "GET",
+          headers: { "Accept": "application/json" },
+        });
+      }
 
       // Read as text first to avoid JSON.parse errors when backend returns HTML or empty responses
       const text = await res.text();
@@ -700,20 +725,24 @@ export default function DashboardMapPage() {
                 openSideModal(s);
               }}
             >
-              <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-xl overflow-hidden">
-                {s.profile_image && !failedImages.has(s.profile_image) ? (
-                  <img
-                    src={s.profile_image}
-                    alt={s.name}
-                    className="w-full h-full object-cover rounded-lg"
-                    onError={() => {
+                <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-xl overflow-hidden">
+                <img
+                  src={s.profile_image || placeholderImage}
+                  alt={s.name}
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    try {
+                      if (s.profile_image) {
                         console.error(`🖼️ Image failed to load for "${s.name}": ${s.profile_image}`);
-                      setFailedImages(prev => new Set(prev).add(s.profile_image));
-                    }}
-                  />
-                ) : (
-                  "🏪"
-                )}
+                        setFailedImages(prev => new Set(prev).add(s.profile_image));
+                      }
+                      // replace broken image with placeholder
+                      e.currentTarget.src = placeholderImage;
+                    } catch (err) {
+                      console.warn('Image onError handler failed', err);
+                    }
+                  }}
+                />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
@@ -828,15 +857,18 @@ export default function DashboardMapPage() {
                     {selectedShop ? (
                       <>
                         <div className="w-full h-36 bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                          {selectedShop.profile_image && !failedImages.has(selectedShop.profile_image) ? (
-                            <img 
-                              src={selectedShop.profile_image} 
-                              className="w-full h-full object-cover" 
-                              onError={() => setFailedImages(prev => new Set(prev).add(selectedShop.profile_image))}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-3xl">🏪</div>
-                          )}
+                          <img
+                            src={selectedShop.profile_image || placeholderImage}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              try {
+                                if (selectedShop.profile_image) setFailedImages(prev => new Set(prev).add(selectedShop.profile_image));
+                                e.currentTarget.src = placeholderImage;
+                              } catch (err) {
+                                console.warn('Shop detail image onError failed', err);
+                              }
+                            }}
+                          />
                         </div>
 
                         {/* If shop detail returned non-JSON, show raw response for debugging */}
@@ -942,16 +974,19 @@ export default function DashboardMapPage() {
                 <button onClick={closePhotoModal} className="absolute top-3 right-3 text-gray-600">✕</button>
 
                 <div className="w-full h-56 bg-gray-100 rounded-lg overflow-hidden mb-3">
-                  {!failedImages.has(photoModal?.profile_image) ? (
-                    <img
-                      src={photoModal?.profile_image || placeholderImage}
-                      alt={photoModal?.name}
-                      className="object-cover w-full h-full"
-                      onError={() => setFailedImages(prev => new Set(prev).add(photoModal?.profile_image))}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl">🏪</div>
-                  )}
+                  <img
+                    src={photoModal?.profile_image || placeholderImage}
+                    alt={photoModal?.name}
+                    className="object-cover w-full h-full"
+                    onError={(e) => {
+                      try {
+                        if (photoModal?.profile_image) setFailedImages(prev => new Set(prev).add(photoModal.profile_image));
+                        e.currentTarget.src = placeholderImage;
+                      } catch (err) {
+                        console.warn('Photo modal image onError failed', err);
+                      }
+                    }}
+                  />
                 </div>
 
                 <h3 className="text-lg font-bold text-gray-900">{photoModal?.name}</h3>

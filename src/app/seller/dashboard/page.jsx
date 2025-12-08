@@ -38,9 +38,6 @@ export default function DashboardPage() {
 
   const imageInputRef = useRef(null);
 
-  // ===========================
-  // LOAD DATA MENU DRI API
-  // ===========================
   useEffect(() => {
     async function load() {
       const res = await getData("/api/seller", token);
@@ -54,7 +51,7 @@ export default function DashboardPage() {
   }, []);
 
   const handleGoLive = async () => {
-    setAiLoading(true); // mulai proses
+    setAiLoading(true); 
     setAiText(null);
 
     const token = localStorage.getItem("token");
@@ -68,7 +65,7 @@ export default function DashboardPage() {
 
         console.log("GPS:", latitude, longitude);
 
-        const res = await fetch("http://127.0.0.1:8000/api/seller/status", {
+        const res = await fetch(`${API_BASE}/api/seller/status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -103,7 +100,7 @@ export default function DashboardPage() {
   const loadAiInsight = async () => {
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://127.0.0.1:8000/api/seller/ai-insight", {
+    const res = await fetch(`${API_BASE}/api/seller/ai-insight`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -127,7 +124,7 @@ export default function DashboardPage() {
   const handleStop = async () => {
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://127.0.0.1:8000/api/seller/status", {
+    const res = await fetch(`${API_BASE}/api/seller/status`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -202,7 +199,7 @@ export default function DashboardPage() {
     }
 
     const response = await fetch(
-      `http://localhost:8000/api/seller/menu/${editMenu.id}`,
+      `${API_BASE}/api/seller/menu/${editMenu.id}`,
       {
         method: "POST",
         headers: {

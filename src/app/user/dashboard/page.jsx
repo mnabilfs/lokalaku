@@ -4,10 +4,12 @@ import dynamic from "next/dynamic";
 import { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import "leaflet/dist/leaflet.css";
+import { API_BASE } from "@/lib/api";
+
 
 /* ===== CONFIG ===== */
 const DEVELOPER_MODE = false; // toggle developer mode
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API = API_BASE;
 
 /* ===== MOCKS (dev mode) ===== */
 const MOCK_WEATHER = "Rainy";

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  reactCompiler: true,
+  reactCompiler: false,
   images: {
     remotePatterns: [
       {
@@ -16,6 +16,11 @@ const nextConfig = {
         port: "8000",
         pathname: "/storage/**",
       },
+       {
+        protocol: "https",
+        hostname: "web-production-e7f3b.up.railway.app", 
+        pathname: "/storage/**",
+      }
     ],
   },
 };

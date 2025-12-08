@@ -1,6 +1,6 @@
 // src/lib/api.js
 
-export const API_BASE = "http://localhost:8000"; // sesuaikan dengan backendmu
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 export async function postData(url, data, token = null) {
   try {
